@@ -13,10 +13,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
+type Todo struct {
+	ID    string
+	Title string
+	Done  bool
+}
+type DeleteTodo struct {
+	ID string `form:"id"`
+}
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -30,7 +37,6 @@ func main() {
 	r.GET("/todos", getTodo)
 	r.DELETE("/todos", deleteTodo)
 	r.POST("/todos", addTodo)
-	// c.Redirect(http.StatusFound, "/")
 
 	srv := http.Server{
 		Addr:    ":" + os.Getenv("PORT"),
@@ -56,15 +62,6 @@ func main() {
 	}
 }
 
-func removeItem(id string, todos []Todo) []Todo {
-	newList := []Todo{}
-	for _, v := range todos {
-		if v.ID != id {
-			newList = append(newList, v)
-		}
-	}
-	return newList
-}
 func deleteTodo(ctx *gin.Context) {
 	var todo DeleteTodo
 	if err := ctx.BindJSON(&todo); err != nil {
@@ -82,6 +79,7 @@ func getTodo(ctx *gin.Context) {
 	todos := readJsonFile()
 	ctx.HTML(http.StatusOK, "todos.html", todos)
 }
+
 func addTodo(ctx *gin.Context) {
 	var newTodo Todo
 	if err := ctx.BindJSON(&newTodo); err != nil {
@@ -116,16 +114,15 @@ func writeJsonFile(todo Todo) {
 
 }
 
-type Todo struct {
-	ID    string
-	Title string
-	Done  bool
-}
-type DeleteTodo struct {
-	ID string `form:"id"`
+func removeItem(id string, todos []Todo) []Todo {
+	newList := []Todo{}
+	for _, v := range todos {
+		if v.ID != id {
+			newList = append(newList, v)
+		}
+	}
+	return newList
 }
 
-// var todos = []Todo{
-// 	{1, "Learn Go", false},
-// 	{2, "Build a Todo App", false},
-// }
+
+
